@@ -230,6 +230,13 @@ class Model extends Overloadable {
  * @access public
  */
 	var $findQueryType = null;
+	/**
+	 * Does this model return models instead of arrays?
+	 *
+	 * @var string
+	 * @access public
+	 */
+		var $findObjects = true;
 /**
  * Mapped behavior methods
  *
@@ -1755,14 +1762,15 @@ class Model extends Overloadable {
 
 		switch ($type) {
 			case 'all':
-				return $this->__filterResults($results, true);
+				$filtered = $this->__filterResults($results, true);
+					return $this->__toRecords($filtered);
 			break;
 			case 'first':
 				$results = $this->__filterResults($results, true);
 				if (empty($results[0])) {
 					return false;
 				}
-				return $results[0];
+				return $this->__toRecords($results[0]);
 			break;
 			case 'count':
 				if (isset($results[0][0]['count'])) {
@@ -2564,6 +2572,54 @@ class Model extends Overloadable {
 		$return = array_keys(get_object_vars($this));
 		return $return;
 	}
+/**
+ * Takes a multi-dimentional array returned from a find() request and		
+ * converts it to an array of objects
+ * @return array New data set full of Record objects
+ * @access private
+ */
+	function __toRecords($data) {
+		if ($this->findObjects) {
+			require_once(LIBS.'model'.DS.'record.php');
+			if (!empty($data[$this->name])) {
+				return $this->_mapRecord($data[$this->name]);
+			} else {
+				$new = array();
+				foreach ($data as $row) {
+					foreach($row as $model => $data) {
+						$new[] = $this->_mapRecord($data);
+					}
+				}
+				return $new;
+			}
+		} else {
+			return $data;
+		}
+	}
+/**
+ * Creates a new Record object and maps the supplied fields to it
+ * @return array Record object
+ * @access private
+ */	
+	function _mapRecord($fields) {
+		$record = new Record($this->name);
+		foreach ($fields as $key => $val) {
+			$record->$key = $val;
+		}
+		return $record;
+	}
+	
+	/**
+	 * Called when we try to access a member var that doesn't exist
+	 *
+	 * @access private
+	 */
+	function __get($member) {
+		if (!empty($this->_record[$member])) {
+			return $this->_record[$member];
+		}		
+	}
+	
 /**
  * Called when unserializing a model
  *
