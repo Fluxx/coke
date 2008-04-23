@@ -8,8 +8,8 @@ class Record {
 	var $_parent;
 	
 	# Constructor
-	function record($model) {
-		$this->_parent = $model;
+	function record($model, $in_model = false) {
+		$this->_parent = $in_model ? $in_model : $model;
 	}
 	
 	# Member missing?  Try the parent!
@@ -18,7 +18,7 @@ class Record {
 		$model->_record = get_object_vars($this);
 		
 		if (!empty($model->$member)) {
-			return $model->member();
+			return $model->$member();
 		}
 		else if (method_exists($this->_parent, $member)) {
 			return $model->$member();
@@ -28,7 +28,7 @@ class Record {
 		}
 	}
 	
-	# Method missing?  Try calling the parent's
+	# Method missing?  Try calling the parents'
 	function __call($func, $args) {
 		if (method_exists($this->_parent, $func)) {
 			$model[_record] = get_object_vars($this);

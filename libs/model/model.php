@@ -2586,9 +2586,31 @@ class Model extends Overloadable {
 			} else {
 				$new = array();
 				foreach ($data as $row) {
+					$parent = null;
+					$kids = array();
+					$insert = null;
 					foreach($row as $model => $data) {
-						$new[] = $this->_mapRecord($data);
+						# If this model looks familar and is the class making the call
+						if ($this->name == $model) {
+							$parent = $this->_mapRecord($data, $model);
+						}
+						# Otherwise, it's a child
+						else {
+							$tmp = array();
+							foreach ($data as $row => $values) {
+								$tmp[] = $this->_mapRecord($values, $model);
+							}
+							$kids[$model] = $tmp;
+						}
 					}
+					# And now build and set our new row
+					$insert = $parent;
+					foreach ($kids as $model => $records) {
+						# Pluralize the model name
+						$plural = Inflector::pluralize($model);
+						$insert->$plural = $records;
+					}
+					$new[] = $insert;
 				}
 				return $new;
 			}
@@ -2596,28 +2618,33 @@ class Model extends Overloadable {
 			return $data;
 		}
 	}
+	
 /**
  * Creates a new Record object and maps the supplied fields to it
  * @return array Record object
  * @access private
  */	
-	function _mapRecord($fields) {
-		$record = new Record($this->name);
+	function _mapRecord($fields, $in_model = false) {
+		$record = new Record($this->name, $in_model);
 		foreach ($fields as $key => $val) {
 			$record->$key = $val;
 		}
 		return $record;
 	}
 	
-	/**
-	 * Called when we try to access a member var that doesn't exist
-	 *
-	 * @access private
-	 */
+/**
+ * Called when we try to access a member var that doesn't exist.  We look in
+ * the _record var for it, which is only set if called from a Record object.
+ *
+ * @access private
+ */
 	function __get($member) {
 		if (!empty($this->_record[$member])) {
 			return $this->_record[$member];
-		}		
+		}
+		else if(method_exists($this->name, $member)) {
+			return $this->$member();
+		}
 	}
 	
 /**
