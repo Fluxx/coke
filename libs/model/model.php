@@ -2572,6 +2572,7 @@ class Model extends Overloadable {
 		$return = array_keys(get_object_vars($this));
 		return $return;
 	}
+	
 /**
  * Takes a multi-dimentional array returned from a find() request and		
  * converts it to an array of objects
@@ -2579,53 +2580,74 @@ class Model extends Overloadable {
  * @access private
  */
 	function __toRecords($data) {
-		if ($this->findObjects) {
-			require_once(LIBS.'model'.DS.'record.php');
-			if (!empty($data[$this->name])) {
-				return $this->_mapRecord($data[$this->name]);
-			} else {
-				$new = array();
-				foreach ($data as $row) {
-					$parent = null;
-					$kids = array();
-					$insert = null;
-					foreach($row as $model => $data) {
-						# If this model looks familar and is the class making the call
-						if ($this->name == $model) {
-							$parent = $this->_mapRecord($data, $model);
-						}
-						# Otherwise, it's a child
-						else {
-							$tmp = array();
-							foreach ($data as $row => $values) {
-								$tmp[] = $this->_mapRecord($values, $model);
-							}
-							$kids[$model] = $tmp;
-						}
-					}
-					# And now build and set our new row
-					$insert = $parent;
-					foreach ($kids as $model => $records) {
-						# Pluralize the model name
-						$plural = Inflector::pluralize($model);
-						$insert->$plural = $records;
-					}
-					$new[] = $insert;
-				}
-				return $new;
+		require_once(LIBS.'model'.DS.'record.php');
+
+		# Non-numeric key = just return the set
+		if (!is_numeric(key($data))) {
+			return $this->_mapSet($data);
+		}
+		# Otherwise, iterate the list and buila a new set to return
+		else {
+			$set = array();
+			foreach ($data as $key => $val) {
+				$set[] = $this->_mapSet($val);
 			}
-		} else {
-			return $data;
+			return $set;
 		}
 	}
 	
-/**
- * Creates a new Record object and maps the supplied fields to it
- * @return array Record object
+	/**
+ * Takes a typical "row" returned from Cake, and maps it to a set(s) of
+ * Record objects.
+ * @return array New data row as Record objects
  * @access private
- */	
-	function _mapRecord($fields, $in_model = false) {
-		$record = new Record($this->name, $in_model);
+ */
+	function _mapSet($data) {
+		$kids = array();
+		$return = null;
+		foreach ($data as $model => $val) {
+			# If this is the parent for this row, set it as the return var first
+			if ($this->name == $model) {
+				$return = $this->_buildRecord($val, $model);
+			}
+			# Or, assuming it's just a 1 => 1 relationship, we add it to our kids
+			# array
+			else if(!empty($val) && !is_numeric(key($val))) {
+				$kids[$model] = $this->_buildRecord($val, $model);
+			}
+			# Otherwise, this "val" could actually be an array of more rows
+			else if(is_array($val)) {
+				$kids[$model] = array();
+				foreach($val as $row => $attributes) {
+					# If it's a full fledged row, we see how deep the rabbit hole goes
+					if (!is_numeric($row)) {
+						$kids[$model][] = $this->_mapSet($attributes);
+					}
+					# Otherwise, it's just one level deep
+					else {
+						$kids[$model][] = $this->_buildRecord($attributes, $model);
+					}
+				}
+			}
+			# Otherwise, just set it and forget it
+			else {
+				$kids[$model] = $val;
+			}
+		}
+		foreach ($kids as $model => $record) {
+			$return->{$model} = $record;
+		}
+		return $return;
+	}
+	
+	/**
+	 * Creates a new Record object and maps the supplied fields to it
+	 * @return array Record object
+	 * @access private
+	 */
+	function _buildRecord($fields, $in_model = false) {
+		if (empty($fields)) return false;
+		$record =& new Record($this->name, $in_model);
 		foreach ($fields as $key => $val) {
 			$record->$key = $val;
 		}
