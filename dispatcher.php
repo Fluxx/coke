@@ -236,7 +236,7 @@ class Dispatcher extends Object {
 				)
 			));
 		}
-
+		
 		return $this->_invoke($controller, $this->params, $missingAction);
 	}
 /**
@@ -267,7 +267,6 @@ class Dispatcher extends Object {
 		} else {
 			$output = call_user_func_array(array(&$controller, $params['action']), empty($params['pass'])? array(): $params['pass']);
 		}
-
 		if ($controller->autoRender) {
 			$output = $controller->render();
 		}

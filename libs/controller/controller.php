@@ -685,8 +685,18 @@ class Controller extends Object {
 		if (Configure::read() > 2) {
 			$this->set('cakeDebug', $this);
 		}
-
+		
 		$this->__viewClass =& new $viewClass($this);
+		
+		# And right before we actually do much else, lets set all our vars that
+		# appear in the controller model in our view, just so we have them
+		foreach ($this as $key => $var) {
+			if (!isset($this->__viewClass->viewVars[$key])) {
+				$this->__viewClass->viewVars[$key] = $var;
+			}
+		}
+		
+		
 		if (!empty($this->modelNames)) {
 			$models = array();
 			foreach ($this->modelNames as $currentModel) {
@@ -709,6 +719,7 @@ class Controller extends Object {
 		}
 
 		$this->autoRender = false;
+		
 		return $this->__viewClass->render($action, $layout, $file);
 	}
 /**
