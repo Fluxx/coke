@@ -277,6 +277,12 @@ class Controller extends Object {
  * @access public
  */
 	var $passedArgs = array();
+	
+	
+	var $modelClass;
+	var $modelKey;
+	
+	
 /**
  * Constructor.
  *
@@ -691,7 +697,7 @@ class Controller extends Object {
 		# And right before we actually do much else, lets set all our vars that
 		# appear in the controller model in our view, just so we have them
 		foreach (get_object_vars($this) as $key => $var) {
-			if (!isset($this->__viewClass->viewVars[$key])) {
+			if (!isset($this->__viewClass->viewVars[$key]) && $key != '__viewClass') {
 				$this->__viewClass->viewVars[$key] = $var;
 			}
 		}
@@ -1002,6 +1008,15 @@ class Controller extends Object {
 
 		return $results;
 	}
+	
+	
+	public function __set($name, $value) {
+      	$this->{$name} = $value;
+  }
+	
+	
+	
+	
 /**
  * Called before the controller action. Overridden in subclasses.
  *
