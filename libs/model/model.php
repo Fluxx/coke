@@ -236,7 +236,7 @@ class Model extends Overloadable {
 	 * @var string
 	 * @access public
 	 */
-		var $findObjects = true;
+		var $findRecords = true;
 /**
  * Mapped behavior methods
  *
@@ -438,7 +438,6 @@ class Model extends Overloadable {
 
 					$methods = get_class_methods($this->behaviors[$behavior]);
 					$parentMethods = get_class_methods('ModelBehavior');
-
 					foreach ($methods as $m) {
 						if (!in_array($m, $parentMethods)) {
 							if (strpos($m, '_') !== 0 && !array_key_exists($m, $this->__behaviorMethods) && !in_array($m, $callbacks)) {
@@ -479,12 +478,18 @@ class Model extends Overloadable {
 
 		if (in_array(strtolower($method), $methods)) {
 			$it = $map[strtolower($method)];
-			return call_user_func_array(array(&$this->behaviors[$it[1]], $it[0]), $pass);
+			$pass[0]->findRecords = false;
+			$call = call_user_func_array(array(&$this->behaviors[$it[1]], $it[0]), $pass);
+			$pass[0]->findRecords = true;
+			return $call;
 		}
 
 		for ($i = 0; $i < $count; $i++) {
 			if (strpos($methods[$i], '/') === 0 && preg_match($methods[$i] . 'i', $method)) {
-				return call_user_func_array(array($this->behaviors[$call[$i][1]], $call[$i][0]), $pass);
+				$pass[0]->findRecords = false;
+				$call = call_user_func_array(array($this->behaviors[$call[$i][1]], $call[$i][0]), $pass);
+				$pass[0]->findRecords = true;
+				return $call;
 			}
 		}
 
@@ -1166,10 +1171,13 @@ class Model extends Overloadable {
 			$behaviors = array_keys($this->behaviors);
 			$ct = count($behaviors);
 			for ($i = 0; $i < $ct; $i++) {
+				$this->findRecords = false;
 				if ($this->behaviors[$behaviors[$i]]->beforeSave($this) === false) {
 					$this->whitelist = $_whitelist;
+					$this->findRecords = true;
 					return false;
 				}
+				$this->findRecords = true;
 			}
 		}
 
@@ -1247,7 +1255,9 @@ class Model extends Overloadable {
 				$behaviors = array_keys($this->behaviors);
 				$ct = count($behaviors);
 				for ($i = 0; $i < $ct; $i++) {
+					$this->findRecords = false;
 					$this->behaviors[$behaviors[$i]]->afterSave($this, $created);
+					$this->findRecords = true;
 				}
 			}
 			$this->afterSave($created);
@@ -1467,7 +1477,9 @@ class Model extends Overloadable {
 			$this->id = $id;
 
 			if (!empty($this->belongsTo)) {
+				$this->findRecords = false;
 				$keys = $this->find('first', array('fields', $this->__collectForeignKeys()));
+				$this->findRecords = true;
 			}
 
 			if ($db->delete($this)) {
@@ -1522,7 +1534,9 @@ class Model extends Overloadable {
 				if (isset($data['exclusive']) && $data['exclusive']) {
 					$model->deleteAll(array($field => $id));
 				} else {
+					$model->findRecords = false;
 					$records = $model->findAll(array($field => $id), $model->primaryKey);
+					$model->findRecords = true;
 
 					if (!empty($records)) {
 						foreach ($records as $record) {
@@ -2580,6 +2594,8 @@ class Model extends Overloadable {
  * @access private
  */
 	function __toRecords($data) {
+		if (!$this->findRecords) return $data;
+		
 		require_once(LIBS.'model'.DS.'record.php');
 
 		# Non-numeric key = just return the set
