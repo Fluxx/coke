@@ -697,7 +697,8 @@ class Controller extends Object {
 		# And right before we actually do much else, lets set all our vars that
 		# appear in the controller model in our view, just so we have them
 		foreach (get_object_vars($this) as $key => $var) {
-			if (!isset($this->__viewClass->viewVars[$key]) && $key != '__viewClass') {
+			
+			if ( !isset($this->__viewClass->viewVars[$key]) && !in_array($key, array('__viewClass')) ) {
 				$this->__viewClass->viewVars[$key] = $var;
 			}
 		}

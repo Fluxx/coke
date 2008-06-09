@@ -135,7 +135,8 @@ class FormHelper extends AppHelper {
 			);
 		}
 
-		if (isset($this->data[$model]) && isset($this->data[$model][$data['key']]) && !empty($this->data[$model][$data['key']])) {
+		#if (isset($this->data[$model]) && isset($this->data[$model][$data['key']]) && !empty($this->data[$model][$data['key']])) {
+		if (isset($this) && isset($this->$data['key']) && !empty($this->$data['key'])) {
 			$created = true;
 			$id = $this->data[$model][$data['key']];
 		}

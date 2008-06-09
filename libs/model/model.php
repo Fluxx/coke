@@ -2677,6 +2677,7 @@ class Model extends Overloadable {
  * @access private
  */
 	function __get($member) {
+		
 		if (!empty($this->_record[$member])) {
 			return $this->_record[$member];
 		}

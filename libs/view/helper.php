@@ -539,18 +539,18 @@ class Helper extends Overloadable {
 		if (is_array($options) && isset($options[$key])) {
 			return $options;
 		}
-
 		$result = null;
-
-		if (isset($this->data[$this->model()][$this->field()])) {
-			$result = $this->data[$this->model()][$this->field()];
-		} elseif (isset($this->data[$this->field()]) && is_array($this->data[$this->field()])) {
-			if (ClassRegistry::isKeySet($this->field())) {
-				$model =& ClassRegistry::getObject($this->field());
-				$result = $this->__selectedArray($this->data[$this->field()], $model->primaryKey);
+		$field = $this->field();
+		$model = $this->model();
+		if (isset($this->data->$field)) {
+			$result = $this->data->$field;
+		} elseif (isset($this->data) && is_array($this->data)) {
+			if (ClassRegistry::isKeySet($field)) {
+				$model =& ClassRegistry::getObject($field);
+				$result = $this->__selectedArray($this->data, $model->primaryKey);
 			}
-		} elseif (isset($this->data[$this->model()][$this->modelID()][$this->field()])) {
-			$result = $this->data[$this->model()][$this->modelID()][$this->field()];
+		} elseif (isset($this->data->$model)) {
+			$result = $this->data->$model[$this->modelID()][$this->field()];
 		}
 
 		if (is_array($result)) {
