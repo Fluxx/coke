@@ -542,6 +542,7 @@ class Helper extends Overloadable {
 		$result = null;
 		$field = $this->field();
 		$model = $this->model();
+		
 		if (isset($this->data->$field)) {
 			$result = $this->data->$field;
 		} elseif (isset($this->data) && is_array($this->data)) {
@@ -550,7 +551,11 @@ class Helper extends Overloadable {
 				$result = $this->__selectedArray($this->data, $model->primaryKey);
 			}
 		} elseif (isset($this->data->$model)) {
+			echo $field;
 			$result = $this->data->$model[$this->modelID()][$this->field()];
+		}
+		elseif (!empty($this->data) && $res = $this->data->$field) {
+			$result = $res;
 		}
 
 		if (is_array($result)) {
