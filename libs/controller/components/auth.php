@@ -744,22 +744,22 @@ class AuthComponent extends Object {
 			}
 			$model =& $this->getModel();
 			$data = $model->find(array_merge($find, $conditions), null, null, -1);
-			if (empty($data) || empty($data[$this->userModel])) {
+			if (empty($data)) {
 				return null;
 			}
 		} elseif (is_numeric($user)) {
 			$model =& $this->getModel();
 			$data = $model->find(array_merge(array($model->escapeField() => $user), $conditions));
 
-			if (empty($data) || empty($data[$this->userModel])) {
+			if (empty($data)) {
 				return null;
 			}
 		}
 		if (isset($data) && !empty($data)) {
-			if (!empty($data[$this->userModel][$this->fields['password']])) {
-				unset($data[$this->userModel][$this->fields['password']]);
+			if (!empty($data->{$this->fields['password']})) {
+				unset( $data->{$this->fields['password']} );
 			}
-			return $data[$this->userModel];
+			return $data;
 		} else {
 			return null;
 		}
@@ -772,6 +772,7 @@ class AuthComponent extends Object {
  * @access public
  */
 	function hashPasswords($data) {
+		
 		if (is_object($this->authenticate) && method_exists($this->authenticate, 'hashPasswords')) {
 			return $this->authenticate->hashPasswords($data);
 		}

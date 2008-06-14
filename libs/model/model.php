@@ -2595,8 +2595,6 @@ class Model extends Overloadable {
  */
 	function __toRecords($data) {
 		if (!$this->findRecords) return $data;
-		
-		require_once(LIBS.'model'.DS.'record.php');
 
 		# Non-numeric key = just return the set
 		if (!is_numeric(key($data))) {
