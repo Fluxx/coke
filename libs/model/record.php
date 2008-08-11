@@ -14,8 +14,9 @@ class Record {
 	
 	# Member missing?  Try the parent!
 	function __get($member) {
-		$model =& new $this->_parent;
-		$model->_record = get_object_vars($this);
+		if (class_exists($this->_parent) && $model =& new $this->_parent) {
+			$model->_record = get_object_vars($this);
+		}
 		
 		# TODO: Abscract this out to a recursive function so we can go n levels
 		# deep and build our _record vars

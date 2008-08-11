@@ -270,7 +270,7 @@ class AuthComponent extends Object {
 			return false;
 		}
 
-		$this->data = $controller->data = $this->hashPasswords($controller->data);
+		$this->data = $controller->data;
 
 		if ($this->allowedActions == array('*') || in_array($controller->action, $this->allowedActions)) {
 			return false;
@@ -293,7 +293,7 @@ class AuthComponent extends Object {
 
 			$data = array(
 				$this->userModel . '.' . $this->fields['username'] => '= ' . $controller->data[$this->userModel][$this->fields['username']],
-				$this->userModel . '.' . $this->fields['password'] => '= ' . $controller->data[$this->userModel][$this->fields['password']]
+				$this->userModel . '.' . $this->fields['password'] => '= ' . $this->password($controller->data[$this->userModel][$this->fields['password']])
 			);
 
 			if ($this->login($data)) {
@@ -595,8 +595,8 @@ class AuthComponent extends Object {
 			return array($this->userModel => $this->Session->read($this->sessionKey));
 		} else {
 			$user = $this->Session->read($this->sessionKey);
-			if (isset($user[$key])) {
-				return $user[$key];
+			if (isset($user->$key)) {
+				return $user->$key;
 			} else {
 				return null;
 			}
@@ -700,6 +700,7 @@ class AuthComponent extends Object {
  * @access public
  */
 	function identify($user = null, $conditions = null) {
+		
 		if ($conditions === false) {
 			$conditions = null;
 		} elseif (is_array($conditions)) {
@@ -742,6 +743,7 @@ class AuthComponent extends Object {
 			} else {
 				return false;
 			}
+		
 			$model =& $this->getModel();
 			$data = $model->find(array_merge($find, $conditions), null, null, -1);
 			if (empty($data)) {

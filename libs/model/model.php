@@ -1076,13 +1076,13 @@ class Model extends Overloadable {
 		}
 		if ($data = $this->find($conditions, $name, $order, $recursive)) {
 			if (strpos($name, '.') === false) {
-				if (isset($data[$this->alias][$name])) {
-					return $data[$this->alias][$name];
+				if (isset($data->$name)) {
+					return $data->$name;
 				}
 			} else {
 				$name = explode('.', $name);
-				if (isset($data[$name[0]][$name[1]])) {
-					return $data[$name[0]][$name[1]];
+				if (isset($data->{$name[1]})) {
+					return $data->{$name[1]};
 				}
 			}
 			if (isset($data[0]) && count($data[0]) > 0) {
@@ -2617,6 +2617,7 @@ class Model extends Overloadable {
  * @access private
  */
 	function _mapSet($data) {
+		
 		$kids = array();
 		$return = null;
 		foreach ($data as $model => $val) {
@@ -2626,7 +2627,7 @@ class Model extends Overloadable {
 			}
 			# Or, assuming it's just a 1 => 1 relationship, we add it to our kids
 			# array
-			else if(!empty($val) && !is_numeric(key($val))) {
+			else if(!empty($val) && !is_string($val) && !is_numeric(key($val))) {
 				$kids[$model] = $this->_buildRecord($val, $model);
 			}
 			# Otherwise, this "val" could actually be an array of more rows
@@ -2660,8 +2661,8 @@ class Model extends Overloadable {
 	 * @access private
 	 */
 	function _buildRecord($fields, $in_model = false) {
-		if (empty($fields)) return false;
-		$record =& new Record($this->name, $in_model);
+		$model_name = $in_model ? $in_model : $this->name;
+		$record =& new Record($model_name, $in_model);
 		foreach ($fields as $key => $val) {
 			$record->$key = $val;
 		}

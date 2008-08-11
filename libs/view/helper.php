@@ -543,19 +543,29 @@ class Helper extends Overloadable {
 		$field = $this->field();
 		$model = $this->model();
 		
+		# This is ugly, and I need to refactor it
 		if (isset($this->data->$field)) {
 			$result = $this->data->$field;
-		} elseif (isset($this->data) && is_array($this->data)) {
+		}
+		elseif (isset($this->data) && is_array($this->data) && !empty($this->data[$model]) && is_array($this->data[$model])) {
 			if (ClassRegistry::isKeySet($field)) {
 				$model =& ClassRegistry::getObject($field);
 				$result = $this->__selectedArray($this->data, $model->primaryKey);
 			}
-		} elseif (isset($this->data->$model)) {
-			echo $field;
-			$result = $this->data->$model[$this->modelID()][$this->field()];
 		}
-		elseif (!empty($this->data) && $res = $this->data->$field) {
-			$result = $res;
+		elseif (!empty($this->data->$field)) {
+			$result = $this->data->$field;
+		}
+		elseif (!empty($this->data) && is_array($this->data)  && !empty($this->data[$model]) && is_array($this->data[$model]) &&  !empty($this->data[$model][$field])) {
+			$result = $this->data[$model][$field];
+		}
+		else if(is_array($this->data) && !empty($this->data[$model]->$field)) {
+			$result = $this->data[$model]->$field;
+		}
+		
+		# Anything from a post takes over here
+		if (is_array($this->data) && is_array($this->data[$model]) && !empty($this->data[$model]) && !empty($this->data[$model][$field])) {
+			$result = $this->data[$model][$field];
 		}
 
 		if (is_array($result)) {
