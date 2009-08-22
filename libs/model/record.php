@@ -18,7 +18,7 @@ class Record {
 			$model->_record = get_object_vars($this);
 		}
 		
-		# TODO: Abscract this out to a recursive function so we can go n levels
+		# TODO: Abstract this out to a recursive function so we can go n levels
 		# deep and build our _record vars
 		foreach ($model->_record as $mname => $var) {
 			if (is_object($var)  && get_class($var) == 'Record') {

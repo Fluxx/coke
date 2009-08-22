@@ -1085,7 +1085,7 @@ class Model extends Overloadable {
 					return $data->{$name[1]};
 				}
 			}
-			if (isset($data[0]) && count($data[0]) > 0) {
+			if (isset($data->$name) && count($data->$name) > 0) {
 				$name = key($data[0]);
 				return $data[0][$name];
 			}
@@ -2617,7 +2617,6 @@ class Model extends Overloadable {
  * @access private
  */
 	function _mapSet($data) {
-		
 		$kids = array();
 		$return = null;
 		foreach ($data as $model => $val) {
